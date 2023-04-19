@@ -83,7 +83,7 @@
       </div>
 
       <div class="taskButtons">
-        <button @click=""> Сумма двух векторов </button> 
+        <button @click="sumVector()"> Сумма двух векторов </button> 
         <button @click=""> Разность двух векторов </button> 
         <button @click=""> Скалярное произведение двух векторов </button> 
         <button @click=""> Угол между двумя векторами </button>  
@@ -115,6 +115,19 @@ export default {
   data() {
     return {
       solutionText: 'Здесь находится решение. Заполните все значения координат и выберите одну из задач',
+      linesCoords: {},
+      xAxis: {
+        begin: [-10000, 0, 0],
+        end: [10000, 0, 0]
+      },
+      yAxis: {
+        begin: [0, -10000, 0],
+        end: [0, 10000, 0]
+      },
+      zAxis: {
+        begin: [0, 0, -10000],
+        end: [0, 0, 10000]
+      },
     }
   },
 
@@ -126,6 +139,8 @@ export default {
   },
 
   methods: {
+    // Basics 
+
     setScene() {
       scene.background = new THREE.Color( 0x252628 );
       // Set sizes and place it in sceneHolder
@@ -136,7 +151,7 @@ export default {
       function animate() {
         requestAnimationFrame( animate );
 
-        // required if controls.enableDamping or controls.autoRotate are set to true
+        // Required if controls.enableDamping or controls.autoRotate are set to true
 	      controls.update();
 
         renderer.render( scene, camera );
@@ -156,16 +171,18 @@ export default {
 
     createAxis() {
       // Creating XYZ axis
-      this.createLine(0xff0000, [-10000, 0, 0, 10000, 0, 0], true)
-      this.createLine(0x00ff00, [0, -10000, 0, 0, 10000, 0], true)
-      this.createLine(0x0000ff, [0, 0, -10000, 0, 0, 10000], true)
+      this.createLine(0xff0000, this.xAxis, true)
+      this.createLine(0x00ff00, this.yAxis, true)
+      this.createLine(0x0000ff, this.zAxis, true)
     },
 
     createAxisText() {
-      this.createText('#ff0000', '60px sans-serif', "X", [6, 1, 0], [0, 0, 0]);
+      this.createText('#ff0000', '60px sans-serif', "X", [6, 1, 0],  [0, 0, 0]);
       this.createText('#00ff00', '60px sans-serif', "Y", [4, 4, 0],  [0, 0, 0]);
       this.createText('#0000ff', '60px sans-serif', "Z", [0, 1, 2],  [0, 1.7, 0]);
     },
+
+    // Create objects (Text and lines)
 
     createText(color, font, text, coords, rotation) {
       const canvas = document.createElement('canvas')
@@ -175,7 +192,8 @@ export default {
       context.font = font
       context.fillText(text, 10, 60, 10000)
 
-      // canvas contents are used for a texture
+      // Canvas contents are used for a texture
+
       const texture = new THREE.Texture(canvas)
       texture.needsUpdate = true
 
@@ -212,8 +230,8 @@ export default {
       }
 
       const points = [];
-      points.push( new THREE.Vector3(coords[0], coords[1], coords[2])); // First three numbers - line begin
-      points.push( new THREE.Vector3(coords[3], coords[4], coords[5])); // Last three numbers - line end
+      points.push( new THREE.Vector3(coords.begin[0], coords.begin[1], coords.begin[2]) ); // First three numbers - line begin
+      points.push( new THREE.Vector3(coords.end[0], coords.end[1], coords.end[2]) ); // Last three numbers - line end
 
       const geometry = new THREE.BufferGeometry().setFromPoints( points );
       const line = new THREE.Line( geometry, material );
@@ -222,23 +240,64 @@ export default {
       scene.add(line);
     },
 
+    // Vectors functions
+
+    sumVector() {
+      this.cleanScene();
+      this.getUserCoords();
+
+      if (this.linesCoords != undefined) {
+        // First vector //
+        this.createLine(0x76a900, this.linesCoords.firstLine, false);
+
+        // The second vector goes from the end of the first vector //
+        this.linesCoords.secLine.begin = this.linesCoords.firstLine.end;
+        for (let i = 0; i < 3; i++) {
+          this.linesCoords.secLine.end[i] += this.linesCoords.secLine.begin[i];
+        }
+        this.createLine(0x30d5c8, this.linesCoords.secLine, false);
+
+        // Summary vector
+        let sumVector = {
+          begin: this.linesCoords.firstLine.begin,
+          end: this.linesCoords.secLine.end
+        }
+        this.createLine(0xFFC0CB, sumVector, false);
+      }
+    },
+
+    // Get information
+
     getUserCoords() {
       const firstLineForm = document.getElementById('firstLineForm');
       const secLineForm = document.getElementById('secLineForm');
 
       if (firstLineForm.checkValidity() && secLineForm.checkValidity()) {
         let linesCoords = {
-          firstLine: [],
-          secLine: []
+          firstLine: {
+            begin: [],
+            end: []
+          },
+          secLine: {
+            begin: [],
+            end: []
+          }
         }
         for (let i = 0; i < 6; i++) {
-          linesCoords.firstLine.push(parseInt(firstLineForm[i].value, 10));
-          linesCoords.secLine.push(parseInt(secLineForm[i].value, 10));
+          if (i < 3) {
+            linesCoords.firstLine.begin.push(parseInt(firstLineForm[i].value, 10));
+            linesCoords.secLine.begin.push(parseInt(secLineForm[i].value, 10));
+          }
+          else {
+            linesCoords.firstLine.end.push(parseInt(firstLineForm[i].value, 10));
+            linesCoords.secLine.end.push(parseInt(secLineForm[i].value, 10));
+          }
         }
-        return(linesCoords);
+        this.linesCoords = linesCoords;
       }
       else {
         this.showWarning();
+        this.linesCoords = undefined;
       }
     },
 
