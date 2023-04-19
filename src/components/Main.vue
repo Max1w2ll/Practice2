@@ -83,8 +83,8 @@
       </div>
 
       <div class="taskButtons">
-        <button @click="sumVector()"> Сумма двух векторов </button> 
-        <button @click=""> Разность двух векторов </button> 
+        <button @click="sumVectors()"> Сумма двух векторов </button> 
+        <button @click="diffVectors()"> Разность двух векторов </button> 
         <button @click=""> Скалярное произведение двух векторов </button> 
         <button @click=""> Угол между двумя векторами </button>  
       </div>
@@ -242,15 +242,15 @@ export default {
 
     // Vectors functions
 
-    sumVector() {
+    sumVectors() {
       this.cleanScene();
       this.getUserCoords();
 
       if (this.linesCoords != undefined) {
-        // First vector //
+        // First vector
         this.createLine(0x76a900, this.linesCoords.firstLine, false);
 
-        // The second vector goes from the end of the first vector //
+        // The second vector goes from the end of the first vector
         this.linesCoords.secLine.begin = this.linesCoords.firstLine.end;
         for (let i = 0; i < 3; i++) {
           this.linesCoords.secLine.end[i] += this.linesCoords.secLine.begin[i];
@@ -263,6 +263,32 @@ export default {
           end: this.linesCoords.secLine.end
         }
         this.createLine(0xFFC0CB, sumVector, false);
+      }
+    },
+
+    diffVectors() {
+      this.cleanScene();
+      this.getUserCoords();
+
+      if (this.linesCoords != undefined) {
+        
+        // Bring vectors to one point, preserving their length
+        for (let i = 0; i < 3; i++) {
+          this.linesCoords.firstLine.end[i] += this.linesCoords.firstLine.begin[i]
+          this.linesCoords.secLine.end[i] += this.linesCoords.secLine.begin[i];
+        }
+        this.linesCoords.firstLine.begin = [0, 0, 0];
+        this.linesCoords.secLine.begin = [0, 0, 0];
+
+        this.createLine(0x76a900, this.linesCoords.firstLine, false);
+        this.createLine(0x30d5c8, this.linesCoords.secLine, false);
+
+        // Diff vector
+        let diffVector = {
+          begin: this.linesCoords.firstLine.end,
+          end: this.linesCoords.secLine.end
+        }
+        this.createLine(0xFFC0CB, diffVector, false);
       }
     },
 
