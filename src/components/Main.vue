@@ -85,7 +85,7 @@
       <div class="taskButtons">
         <button @click="sumVectors()"> Сумма двух векторов </button> 
         <button @click="diffVectors()"> Разность двух векторов </button> 
-        <button @click=""> Скалярное произведение двух векторов </button> 
+        <button @click="scalMultVectors()"> Скалярное произведение двух векторов </button> 
         <button @click=""> Угол между двумя векторами </button>  
       </div>
 
@@ -271,17 +271,7 @@ export default {
       this.getUserCoords();
 
       if (this.linesCoords != undefined) {
-        
-        // Bring vectors to one point, preserving their length
-        for (let i = 0; i < 3; i++) {
-          this.linesCoords.firstLine.end[i] += this.linesCoords.firstLine.begin[i]
-          this.linesCoords.secLine.end[i] += this.linesCoords.secLine.begin[i];
-        }
-        this.linesCoords.firstLine.begin = [0, 0, 0];
-        this.linesCoords.secLine.begin = [0, 0, 0];
-
-        this.createLine(0x76a900, this.linesCoords.firstLine, false);
-        this.createLine(0x30d5c8, this.linesCoords.secLine, false);
+        this.vectorsToOnePoint()
 
         // Diff vector
         let diffVector = {
@@ -290,6 +280,44 @@ export default {
         }
         this.createLine(0xFFC0CB, diffVector, false);
       }
+    },
+
+    scalMultVectors() {
+      this.cleanScene();
+      this.getUserCoords();
+
+      if (this.linesCoords != undefined) {
+        this.vectorsToOnePoint();
+
+        let firstVectorFromSec = {
+          begin: this.linesCoords.secLine.end,
+          end: []
+        }
+        let secVectorFromFirst = {
+          begin: this.linesCoords.firstLine.end,
+          end: []
+        }
+        for (let i = 0; i < 3; i++) {
+          firstVectorFromSec.end[i] = this.linesCoords.firstLine.end[i] + this.linesCoords.secLine.end[i];
+          secVectorFromFirst.end[i] = this.linesCoords.firstLine.end[i] + this.linesCoords.secLine.end[i];
+        }
+
+        this.createLine(0x76a900, firstVectorFromSec, false);
+        this.createLine(0x30d5c8, secVectorFromFirst, false);
+      }
+    },
+
+    vectorsToOnePoint() {
+      // Bring vectors to one point, preserving their length
+      for (let i = 0; i < 3; i++) {
+        this.linesCoords.firstLine.end[i] += this.linesCoords.firstLine.begin[i]
+        this.linesCoords.secLine.end[i] += this.linesCoords.secLine.begin[i];
+      }
+      this.linesCoords.firstLine.begin = [0, 0, 0];
+      this.linesCoords.secLine.begin = [0, 0, 0];
+
+      this.createLine(0x76a900, this.linesCoords.firstLine, false);
+      this.createLine(0x30d5c8, this.linesCoords.secLine, false);
     },
 
     // Get information
