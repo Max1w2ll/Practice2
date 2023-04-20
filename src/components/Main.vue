@@ -83,7 +83,7 @@
       </div>
 
       <div class="taskButtons">
-        <button @click="sumVector()"> Сумма двух векторов </button> 
+        <button @click="sumVectors()"> Сумма двух векторов </button> 
         <button @click=""> Разность двух векторов </button> 
         <button @click=""> Скалярное произведение двух векторов </button> 
         <button @click=""> Угол между двумя векторами </button>  
@@ -115,6 +115,8 @@ export default {
   data() {
     return {
       solutionText: 'Здесь находится решение. Заполните все значения координат и выберите одну из задач',
+      firstVectorLenght: [0,0,0],
+      secVectorLenght: [0,0,0],
       linesCoords: {},
       xAxis: {
         begin: [-10000, 0, 0],
@@ -242,7 +244,7 @@ export default {
 
     // Vectors functions
 
-    sumVector() {
+    sumVectors() {
       this.cleanScene();
       this.getUserCoords();
 
@@ -263,7 +265,39 @@ export default {
           end: this.linesCoords.secLine.end
         }
         this.createLine(0xFFC0CB, sumVector, false);
+
+        this.sumVectorsSolution();
       }
+    },
+
+    // Solution texts
+    sumVectorsSolution() {
+      this.getUserCoords();
+      this.solutionText = "Сумма двух векторов: \n\n";
+      this.findVectorsLenghts();
+      this.findSumVectors();
+    },
+
+    findVectorsLenghts() {
+      for (let i = 0; i < 3; i++) {
+        this.firstVectorLenght[i] = this.linesCoords.firstLine.end[i] - this.linesCoords.firstLine.begin[i];
+        this.secVectorLenght[i] = this.linesCoords.secLine.end[i] - this.linesCoords.secLine.begin[i];
+      }
+      this.solutionText = "Найдём вектора по координатам точек: \n\n";
+      this.solutionText += "Первый вектор: \n";
+      this.solutionText += `{${this.linesCoords.firstLine.end}} - {${this.linesCoords.firstLine.begin}} = {${this.firstVectorLenght}} \n\n`;
+      this.solutionText += "Второй вектор: \n";
+      this.solutionText += `{${this.linesCoords.secLine.end}} - {${this.linesCoords.secLine.begin}} = {${this.secVectorLenght}}  \n\n`;
+    },
+
+    findSumVectors() {
+      this.solutionText += "Найдём сумму векторов: \n\n";
+      this.solutionText += `{${this.firstVectorLenght}} + {${this.secVectorLenght}}`
+      let diffVectors = [0,0,0];
+      for (let i = 0; i < 3; i++) {
+        diffVectors[i] = this.firstVectorLenght[i] + this.secVectorLenght[i];
+      }
+      this.solutionText += ` = {${diffVectors}}`
     },
 
     // Get information
