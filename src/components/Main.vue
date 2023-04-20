@@ -85,7 +85,7 @@
       <div class="taskButtons">
         <button @click="sumVectors()"> Сумма двух векторов </button> 
         <button @click="diffVectors()"> Разность двух векторов </button> 
-        <button @click=""> Скалярное произведение двух векторов </button> 
+        <button @click="scalMultVectors()"> Скалярное произведение двух векторов </button> 
         <button @click=""> Угол между двумя векторами </button>  
       </div>
 
@@ -118,6 +118,8 @@ export default {
       firstVectorLenght: [0,0,0],
       secVectorLenght: [0,0,0],
       linesCoords: {},
+      firstVectorLenght: [0,0,0],
+      secVectorLenght: [0,0,0],
       xAxis: {
         begin: [-10000, 0, 0],
         end: [10000, 0, 0]
@@ -275,17 +277,7 @@ export default {
       this.getUserCoords();
 
       if (this.linesCoords != undefined) {
-        
-        // Bring vectors to one point, preserving their length
-        for (let i = 0; i < 3; i++) {
-          this.linesCoords.firstLine.end[i] += this.linesCoords.firstLine.begin[i]
-          this.linesCoords.secLine.end[i] += this.linesCoords.secLine.begin[i];
-        }
-        this.linesCoords.firstLine.begin = [0, 0, 0];
-        this.linesCoords.secLine.begin = [0, 0, 0];
-
-        this.createLine(0x76a900, this.linesCoords.firstLine, false);
-        this.createLine(0x30d5c8, this.linesCoords.secLine, false);
+        this.vectorsToOnePoint()
 
         // Diff vector
         let diffVector = {
@@ -296,6 +288,46 @@ export default {
 
         this.diffVectorsSolution();
       }
+    },
+
+    scalMultVectors() {
+      this.cleanScene();
+      this.getUserCoords();
+
+      if (this.linesCoords != undefined) {
+        this.vectorsToOnePoint();
+
+        let firstVectorFromSec = {
+          begin: this.linesCoords.secLine.end,
+          end: []
+        }
+        let secVectorFromFirst = {
+          begin: this.linesCoords.firstLine.end,
+          end: []
+        }
+        for (let i = 0; i < 3; i++) {
+          firstVectorFromSec.end[i] = this.linesCoords.firstLine.end[i] + this.linesCoords.secLine.end[i];
+          secVectorFromFirst.end[i] = this.linesCoords.firstLine.end[i] + this.linesCoords.secLine.end[i];
+        }
+
+        this.createLine(0x76a900, firstVectorFromSec, false);
+        this.createLine(0x30d5c8, secVectorFromFirst, false);
+
+        this.scalMultVectorsSolution();
+      }
+    },
+
+    vectorsToOnePoint() {
+      // Bring vectors to one point, preserving their length
+      for (let i = 0; i < 3; i++) {
+        this.linesCoords.firstLine.end[i] += this.linesCoords.firstLine.begin[i]
+        this.linesCoords.secLine.end[i] += this.linesCoords.secLine.begin[i];
+      }
+      this.linesCoords.firstLine.begin = [0, 0, 0];
+      this.linesCoords.secLine.begin = [0, 0, 0];
+
+      this.createLine(0x76a900, this.linesCoords.firstLine, false);
+      this.createLine(0x30d5c8, this.linesCoords.secLine, false);
     },
 
     // Solution texts
@@ -311,6 +343,14 @@ export default {
       this.solutionText = "Разность двух векторов: \n\n";
       this.findVectorsLenghts();
       this.findDiffVectors();
+      
+    },
+
+    scalMultVectorsSolution() {
+      this.getUserCoords();
+      this.solutionText = "Скалярное произведение векторов: \n\n";
+      this.findVectorsLenghts();
+      this.findScalMultiply();
     },
 
     findVectorsLenghts() {
@@ -345,6 +385,20 @@ export default {
       }
 
       this.solutionText += ` = {${diffVectors}}`
+    },
+    
+    findScalMultiply() {
+      let multiplyLengths = [0, 0, 0];
+      let scalMultVectors = 0;
+      this.solutionText += "Вычислим скалярное произведение векторов: \n\n";
+      for (let i = 0; i < 3; i++) {
+        this.solutionText += `(${this.firstVectorLenght[i]} * ${this.secVectorLenght[i]})`;
+        if (i < 2) this.solutionText += " + ";
+        multiplyLengths[i] = this.firstVectorLenght[i] * this.secVectorLenght[i];
+        scalMultVectors += multiplyLengths[i];
+      }
+      this.solutionText += ` = ${scalMultVectors} \n\n`;
+      return scalMultVectors;
     },
 
     // Get information
