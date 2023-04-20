@@ -86,7 +86,7 @@
         <button @click="sumVectors()"> Сумма двух векторов </button> 
         <button @click="diffVectors()"> Разность двух векторов </button> 
         <button @click="scalMultVectors()"> Скалярное произведение двух векторов </button> 
-        <button @click=""> Угол между двумя векторами </button>  
+        <button @click="degreeVectors()"> Угол между двумя векторами </button>  
       </div>
 
       <div class="HideOrClearButtons">
@@ -317,11 +317,22 @@ export default {
       }
     },
 
+    degreeVectors() {
+      this.cleanScene();
+      this.getUserCoords();
+
+      if (this.linesCoords != undefined) {
+        this.vectorsToOnePoint();
+
+        this.degreeVectorsSolution();
+      }
+    },
+
     vectorsToOnePoint() {
       // Bring vectors to one point, preserving their length
       for (let i = 0; i < 3; i++) {
-        this.linesCoords.firstLine.end[i] += this.linesCoords.firstLine.begin[i]
-        this.linesCoords.secLine.end[i] += this.linesCoords.secLine.begin[i];
+        this.linesCoords.firstLine.end[i] -= this.linesCoords.firstLine.begin[i]
+        this.linesCoords.secLine.end[i] -= this.linesCoords.secLine.begin[i];
       }
       this.linesCoords.firstLine.begin = [0, 0, 0];
       this.linesCoords.secLine.begin = [0, 0, 0];
@@ -343,7 +354,6 @@ export default {
       this.solutionText = "Разность двух векторов: \n\n";
       this.findVectorsLenghts();
       this.findDiffVectors();
-      
     },
 
     scalMultVectorsSolution() {
@@ -353,11 +363,23 @@ export default {
       this.findScalMultiply();
     },
 
+    degreeVectorsSolution() {
+      this.getUserCoords();
+
+      this.solutionText = "Угол между векторами: \n\n";
+      this.findVectorsLenghts();
+      this.findScalMultiply();
+      this.findModuleVectors();
+      this.findDegreeVectors(this.findScalMultiply(), this.findModuleVectors());
+    },
+
+    // Find texts
     findVectorsLenghts() {
       for (let i = 0; i < 3; i++) {
         this.firstVectorLenght[i] = this.linesCoords.firstLine.end[i] - this.linesCoords.firstLine.begin[i];
         this.secVectorLenght[i] = this.linesCoords.secLine.end[i] - this.linesCoords.secLine.begin[i];
       }
+
       this.solutionText = "Найдём вектора по координатам точек: \n\n";
       this.solutionText += "Первый вектор: \n";
       this.solutionText += `{${this.linesCoords.firstLine.end}} - {${this.linesCoords.firstLine.begin}} = {${this.firstVectorLenght}} \n\n`;
@@ -399,6 +421,51 @@ export default {
       }
       this.solutionText += ` = ${scalMultVectors} \n\n`;
       return scalMultVectors;
+    },
+
+    findModuleVectors() {
+      let firstModuleVector = 0;
+      let secModuleVector = 0;
+
+      this.solutionText += "Найдём модули векторов: \n\n"
+
+      // First module vector
+      this.solutionText += "√("
+      for (let i = 0; i < 3; i++) {
+        this.solutionText += `${this.firstVectorLenght[i]}²`;
+        if (i < 2) this.solutionText += " + ";
+        firstModuleVector += Math.pow(this.firstVectorLenght[i],2);
+      }
+      firstModuleVector = Math.round(Math.sqrt(firstModuleVector));
+      this.solutionText += `) = ${firstModuleVector} \n\n`
+
+      // Second module vector
+      this.solutionText += "√("
+      for (let i = 0; i < 3; i++) {
+        this.solutionText += `${this.secVectorLenght[i]}²`;
+        if (i < 2) this.solutionText += " + ";
+        secModuleVector += Math.pow(this.secVectorLenght[i],2);
+      }
+      secModuleVector = Math.round(Math.sqrt(secModuleVector));
+      this.solutionText += `) = ${secModuleVector} \n\n`
+
+      // Return value for findDegreeVectors
+      let moduleVectors = {
+        first: firstModuleVector,
+        sec: secModuleVector,
+      }
+
+      return moduleVectors
+    },
+
+    findDegreeVectors(scalMult, moduleVectors) {
+      this.solutionText += "Найдём косинус угла векторов. Поделим скалярное произведение на модуль векторов: \n\n"
+
+      this.solutionText += `${scalMult} / (${moduleVectors.first} * ${moduleVectors.sec}) = `
+      this.solutionText += scalMult / (moduleVectors.first * moduleVectors.sec) + "\n\n"
+
+      this.solutionText += "Найдём угол через аркосинус найденого угла. \nОн составляет "
+      this.solutionText += `${(Math.acos( scalMult / (moduleVectors.first * moduleVectors.sec) ) * 180 / Math.PI).toFixed(2)} градусов`
     },
 
     // Get information
