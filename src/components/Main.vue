@@ -116,6 +116,8 @@ export default {
     return {
       solutionText: 'Здесь находится решение. Заполните все значения координат и выберите одну из задач',
       linesCoords: {},
+      firstVectorLenght: [0,0,0],
+      secVectorLenght: [0,0,0],
       xAxis: {
         begin: [-10000, 0, 0],
         end: [10000, 0, 0]
@@ -304,6 +306,8 @@ export default {
 
         this.createLine(0x76a900, firstVectorFromSec, false);
         this.createLine(0x30d5c8, secVectorFromFirst, false);
+
+        this.scalMultVectorsSolution();
       }
     },
 
@@ -318,6 +322,40 @@ export default {
 
       this.createLine(0x76a900, this.linesCoords.firstLine, false);
       this.createLine(0x30d5c8, this.linesCoords.secLine, false);
+    },
+
+    // Text Solution
+    scalMultVectorsSolution() {
+      this.getUserCoords();
+      this.solutionText = "Скалярное произведение векторов: \n\n";
+      this.findVectorsLenghts();
+      this.findScalMultiply();
+    },
+
+    findVectorsLenghts() {
+      for (let i = 0; i < 3; i++) {
+        this.firstVectorLenght[i] = this.linesCoords.firstLine.end[i] - this.linesCoords.firstLine.begin[i];
+        this.secVectorLenght[i] = this.linesCoords.secLine.end[i] - this.linesCoords.secLine.begin[i];
+      }
+      this.solutionText = "Найдём вектора по координатам точек: \n\n";
+      this.solutionText += "Первый вектор: \n";
+      this.solutionText += `{${this.linesCoords.firstLine.end}} - {${this.linesCoords.firstLine.begin}} = {${this.firstVectorLenght}} \n\n`;
+      this.solutionText += "Второй вектор: \n";
+      this.solutionText += `{${this.linesCoords.secLine.end}} - {${this.linesCoords.secLine.begin}} = {${this.secVectorLenght}}  \n\n`;
+    },
+
+    findScalMultiply() {
+      let multiplyLengths = [0, 0, 0];
+      let scalMultVectors = 0;
+      this.solutionText += "Вычислим скалярное произведение векторов: \n\n";
+      for (let i = 0; i < 3; i++) {
+        this.solutionText += `(${this.firstVectorLenght[i]} * ${this.secVectorLenght[i]})`;
+        if (i < 2) this.solutionText += " + ";
+        multiplyLengths[i] = this.firstVectorLenght[i] * this.secVectorLenght[i];
+        scalMultVectors += multiplyLengths[i];
+      }
+      this.solutionText += ` = ${scalMultVectors} \n\n`;
+      return scalMultVectors;
     },
 
     // Get information
